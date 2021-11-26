@@ -1,0 +1,334 @@
+create table Users(
+Id int primary key identity(1,1),
+Email varchar(50),
+Pass varchar(max),
+P_Nombre varchar(50),
+S_Nombre varchar(50),
+Apellido_Paterno varchar(50),
+Apellido_Materno varchar(50),
+Fecha_Nacimiento Date,
+Curp varchar(18),
+Telefono numeric(10,0)
+);
+
+create table Contactos(
+Id_Contacto int primary key identity(1,1),
+Alias varchar(50),
+Telefono numeric(10,0),
+Email varchar(50),
+Id int Foreign key references Users(Id)
+);
+
+create table Sitios(
+Id_Sitio int primary key identity(1,1),
+Nombre varchar(50),
+Descripcion varchar(max),
+Latitud Numeric(9,6),
+Longitud Numeric (9,6),
+);
+
+create table Comentarios(
+Id_Comentario int primary key identity(1,1),
+Comentario varchar(max),
+Calificacion numeric(1,1)
+Id_Sitio int Foreign key references Sitios(Id_Sitio)
+);
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+Create PROCEDURE [dbo].[USERS.Login] 
+	@p_login_json nvarchar(MAX)
+AS
+BEGIN
+	SET NOCOUNT ON;
+	DECLARE @Resultado varchar(max)
+	DECLARE 
+		@user_email varchar(250),
+		@user_password varchar(256)
+
+	SELECT 	
+		@user_email = [user_email],
+		@user_password = [user_password]
+		FROM OPENJSON(@p_login_json)
+		WITH( 
+					[user_email] varchar(250) '$.Email',
+					[user_password] varchar(250) '$.Pass'
+					)
+
+	SET @Resultado =
+	(
+		SELECT 
+			[Id] AS Id,
+			[Email] AS [Email], 
+			[P_Nombre] AS [Primer Nombre], 
+			[S_Nombre] AS [Segundo Nombre],
+			[Apellido_Paterno] AS [Apellido Paterno], 
+			[Apellido_Materno] AS [Apellido Materno]
+		FROM dbo.[Users]
+		WHERE Email = @user_email AND Pass = @user_password
+		FOR JSON PATH
+	)
+
+	SELECT @Resultado AS Usuario
+
+END;
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+Create PROCEDURE [dbo].[USERS.Register]
+	@p_user_json nvarchar(MAX)
+AS 
+BEGIN
+    SET NOCOUNT ON 
+
+	DECLARE @MensajeError NVARCHAR(MAX)
+	DECLARE 
+		@user_id int,
+		@user_email varchar(250),
+		@user_password varchar(max),
+		@user_P_Nombre varchar(250),
+		@user_S_Nombre varchar(250),
+		@user_Apellido_Paterno varchar(250),
+		@user_Apellido_Materno varchar(250),
+		@user_Fecha_Nacimiento DateTime,
+		@user_curp varchar(250),
+		@user_Telefono numeric(10,0)
+		
+	
+			
+	BEGIN TRY
+	BEGIN TRANSACTION Insertar
+	
+		SELECT 	
+		@user_id = [user_id],
+		@user_email = [user_email],
+		@user_password = [user_password],
+		@user_P_Nombre = [user_P_Nombre],
+		@user_S_Nombre = [user_S_Nombre],
+		@user_Apellido_Paterno = [user_Apellido_Paterno],
+		@user_Apellido_Materno = [user_Apellido_Materno],
+		@user_Fecha_Nacimiento = [user_Fecha_Nacimiento],
+		@user_curp = [user_curp],
+		@user_Telefono = [user_Telefono]
+		FROM OPENJSON(@p_user_json)
+		WITH( 
+					[user_id] int '$.Id',
+					[user_email] varchar(50) '$.Email',
+					[user_password] varchar(max) '$.Pass',
+					[user_P_Nombre] varchar(50) '$.P_Nombre',
+					[user_S_Nombre] varchar(50) '$.S_Nombre',
+					[user_Apellido_Paterno] varchar(50) '$.Apellido_Paterno',
+					[user_Apellido_Materno] varchar(50) '$.Apellido_Materno',
+					[user_Fecha_Nacimiento] datetime '$.Fecha_Nacimiento',
+					[user_curp] varchar(50) '$.Curp',
+					[user_Telefono] numeric(10,0) '$.Telefono'
+					)
+
+		INSERT INTO Users
+		VALUES
+           (@user_email,
+					@user_password,
+					@user_P_Nombre,
+					@user_S_Nombre,
+					@user_Apellido_Paterno,
+					@user_Apellido_Materno,
+					@user_Fecha_Nacimiento,
+					@user_curp,
+					@user_Telefono)
+
+	SELECT SCOPE_IDENTITY() AS [SCOPE_IDENTITY];  
+
+
+	COMMIT TRANSACTION Insertar
+	END TRY
+	BEGIN CATCH
+	ROLLBACK TRAN Insertar
+	SET @MensajeError = N'Error ' + CONVERT(varchar(50), ERROR_NUMBER()) +
+						', Severity ' + CONVERT(varchar(5), ERROR_SEVERITY()) +
+						', State ' + CONVERT(varchar(5), ERROR_STATE()) +
+						', Line ' + CONVERT(varchar(5), ERROR_LINE()) +
+						', in procedure [USERS.Set] : ' + ERROR_MESSAGE();					
+	RAISERROR(@MensajeError,16,0);
+	RETURN
+	END CATCH;		
+END;
+
+/****** Object:  StoredProcedure [dbo].[CheckUser]    Script Date: 25/11/2021 07:36:21 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Author,,Name>
+-- Create date: <Create Date,,>
+-- Description:	<Description,,>
+-- =============================================
+Create PROCEDURE [dbo].[Users.CheckUser]
+	-- Add the parameters for the stored procedure here
+	@Email varchar(max)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	SELECT 
+			Email AS [Email],
+			Pass AS [Pass]
+	FROM Users
+	where Email = @Email
+
+    -- Insert statements for procedure here
+
+END;
+
+create table RefreshTokens (
+token_id int primary key identity(1,1),
+token varchar(max),
+user_id int foreign key references Users(Id)
+);
+
+/****** Object:  StoredProcedure [dbo].[Set_Tokens]    Script Date: 25/11/2021 08:37:44 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<RGAV>
+-- Create date: <03-08-2021>
+-- Description:	<Procedimiento para inserción en json>
+-- =============================================
+create PROCEDURE [dbo].[RefreshTokens.Set_Tokens]
+	@p_user_json nvarchar(MAX)
+AS 
+BEGIN
+    SET NOCOUNT ON 
+
+	DECLARE @MensajeError NVARCHAR(MAX)
+	DECLARE 
+		@token_id int,
+		@user_id int,
+		@token varchar(max)
+	
+			
+	BEGIN TRY
+	BEGIN TRANSACTION Insertar
+	
+		SELECT
+		@token_id = [token_id],
+		@user_id = [user_id],
+		@token = [token]
+		FROM OPENJSON(@p_user_json)
+		WITH( 
+					[token_id] int '$.token_id',
+					[user_id] bigint '$.user_id',
+					[token] varchar(max) '$.token'
+					)
+
+		INSERT INTO [dbo].[RefreshTokens]
+           ([user_id],
+			[token])
+		VALUES
+           (@user_id,
+			@token)
+
+	SELECT SCOPE_IDENTITY() AS [SCOPE_IDENTITY];  
+
+
+	COMMIT TRANSACTION Insertar
+	END TRY
+	BEGIN CATCH
+	ROLLBACK TRAN Insertar
+	SET @MensajeError = N'Error ' + CONVERT(varchar(50), ERROR_NUMBER()) +
+						', Severity ' + CONVERT(varchar(5), ERROR_SEVERITY()) +
+						', State ' + CONVERT(varchar(5), ERROR_STATE()) +
+						', Line ' + CONVERT(varchar(5), ERROR_LINE()) +
+						', in procedure [USERS.Set] : ' + ERROR_MESSAGE();					
+	RAISERROR(@MensajeError,16,0);
+	RETURN
+	END CATCH;		
+END;
+
+/****** Object:  StoredProcedure [dbo].[Delete_Tokens]    Script Date: 25/11/2021 08:43:35 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<RGAV>
+-- Create date: <2021-08-03>
+-- Description:	<Procedimiento para borrado lógico de usuario>
+-- =============================================
+create PROCEDURE [dbo].[RefreshTokens.Delete_Tokens] 
+	@Id int
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	delete from RefreshTokens WHERE [token_id] = @Id
+END;
+
+/****** Object:  StoredProcedure [dbo].[Get_Tokens]    Script Date: 25/11/2021 08:45:20 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author: <RGAV>
+-- Create date: <2021-07-09>
+-- Description: <Procedimiento para obtener usuario por Id>
+-- =============================================
+create PROCEDURE [dbo].[RefreshTokens.Get_Tokens]
+@Token varchar(max)
+AS
+BEGIN
+SET NOCOUNT ON;
+
+
+
+SELECT *
+FROM dbo.[RefreshTokens]
+WHERE [token] = @token
+END;
+
+/****** Object:  StoredProcedure [dbo].[USERS.Get_Id]    Script Date: 25/11/2021 08:57:03 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author: <RGAV>
+-- Create date: <2021-07-09>
+-- Description: <Procedimiento para obtener usuario por Id>
+-- =============================================
+create PROCEDURE [dbo].[USERS.Get_Id]
+@Id int
+AS
+BEGIN
+SET NOCOUNT ON;
+
+
+
+SELECT 
+[Email] AS [Email], 
+[P_Nombre] AS [Primer Nombre],
+[S_Nombre] AS [Segundo Nombre],
+[Apellido_Paterno] AS [Apellido Paterno],
+[Apellido_Materno] AS [Apellido Materno],
+[Fecha_Nacimiento] AS [Fecha de Nacimiento],
+[Curp],
+[Telefono]
+FROM Users
+WHERE [Id] = @Id
+END;
+
+
+
+
+
