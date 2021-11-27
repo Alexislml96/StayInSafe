@@ -89,7 +89,7 @@ namespace StayInSafe.Login.Api.Controllers
 
             return NotFound();
         }
-
+        [AllowAnonymous]
         [HttpPost("refresh")]
         public ActionResult<RequestModel> Refresh([FromBody] RefreshModel model)
         {

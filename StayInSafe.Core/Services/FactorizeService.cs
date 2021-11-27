@@ -55,5 +55,28 @@ namespace StayInSafe.Core.Services
                 _ => throw new NullReferenceException(),
             };
         }
+
+
+        public static IContactos Contactos(EServer typeServer)
+        {
+            return typeServer switch
+            {
+                EServer.UDEFINED => throw new NullReferenceException(),
+                EServer.LOCAL => new ContactosService(BridgeDbConnection<Contactos>.Create(ConnectionStrings.LocalServer, DbEnum.Sql)),
+                EServer.CLOUD => new ContactosService(BridgeDbConnection<Contactos>.Create(ConnectionStrings.CloudServer, DbEnum.Sql)),
+                _ => throw new NullReferenceException(),
+            };
+        }
+
+        public static ISitios Sitios(EServer typeServer)
+        {
+            return typeServer switch
+            {
+                EServer.UDEFINED => throw new NullReferenceException(),
+                EServer.LOCAL => new SitiosService(BridgeDbConnection<Sitios>.Create(ConnectionStrings.LocalServer, DbEnum.Sql)),
+                EServer.CLOUD => new SitiosService(BridgeDbConnection<Sitios>.Create(ConnectionStrings.CloudServer, DbEnum.Sql)),
+                _ => throw new NullReferenceException(),
+            };
+        }
     }
 }

@@ -87,7 +87,24 @@ namespace StayInSafe.Core.Services
 
         public bool UpdateUser(Users user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                bool reply = false;
+                user.Pass = _hashTool.Hash(user.Pass);
+                _parameters.Add("@p_user_json", JsonConvert.SerializeObject(user), DbType.String, ParameterDirection.Input);
+                _conn.PrepararProcedimiento("dbo.[USERS.Update]", _parameters);
+                var affectedRows = (long)_conn.QueryFirstOrDefaultDapper(TipoDato.Numerico);
+                reply = affectedRows < 1 ? false : true;
+                return reply;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+            finally
+            {
+                _conn.Dispose();
+            }
         }
 
         protected virtual void Dispose(bool disposing)

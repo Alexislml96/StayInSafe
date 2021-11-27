@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace StayInSafe.Core.Interfaces
 {
-    public interface IUser : IDisposable
+    public interface IContactos : IDisposable
     {
-        long Register(Users user);
-        bool UpdateUser(Users user);
-        Users GetUser(long id);
+        long AddContact(Contactos contacto);
+        IEnumerable<Contactos> GetContactsById(int id);
+        void DeleteContact(int idContact);
     }
 }

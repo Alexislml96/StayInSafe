@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace StayInSafe.Core.Interfaces
 {
-    public interface IUser : IDisposable
+    public interface ISitios : IDisposable
     {
-        long Register(Users user);
-        bool UpdateUser(Users user);
-        Users GetUser(long id);
+        long AddSitio(Sitios sitio);
     }
 }

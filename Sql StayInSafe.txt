@@ -328,6 +328,287 @@ FROM Users
 WHERE [Id] = @Id
 END;
 
+USE [SuperLy]
+GO
+/****** Object:  StoredProcedure [dbo].[Contacts.GetById]    Script Date: 27/11/2021 12:13:11 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author: <RGAV>
+-- Create date: <2021-07-09>
+-- Description: <Procedimiento para obtener usuario por Id>
+-- =============================================
+create PROCEDURE [dbo].[Contacts.GetById]
+@Id int
+AS
+BEGIN
+SET NOCOUNT ON;
+
+
+
+SELECT 
+[Id_Contacto], 
+[Alias],
+[Telefono],
+[Email],
+[Id]
+FROM Contactos
+WHERE [Id] = @Id
+END
+
+
+USE [SuperLy]
+GO
+/****** Object:  StoredProcedure [dbo].[RefreshTokens.Delete_Tokens]    Script Date: 26/11/2021 10:30:13 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<RGAV>
+-- Create date: <2021-08-03>
+-- Description:	<Procedimiento para borrado lógico de usuario>
+-- =============================================
+create PROCEDURE [dbo].[Contacts.DeleteContact] 
+	@Id int
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	delete from Contactos WHERE [Id_Contacto] = @Id
+END;
+
+USE [SuperLy]
+GO
+/****** Object:  StoredProcedure [dbo].[USERS.Update]    Script Date: 26/11/2021 11:14:45 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<RGAV>
+-- Create date: <03-08-2021>
+-- Description:	<Procedimiento para update en json>
+-- =============================================
+create PROCEDURE [dbo].[USERS.Update]
+	@p_user_json nvarchar(MAX)
+AS 
+BEGIN
+    SET NOCOUNT ON 
+
+	DECLARE @MensajeError NVARCHAR(MAX)
+	DECLARE 
+		@user_id int,
+		@user_email varchar(250),
+		@user_password varchar(max),
+		@user_P_Nombre varchar(250),
+		@user_S_Nombre varchar(250),
+		@user_Apellido_Paterno varchar(250),
+		@user_Apellido_Materno varchar(250),
+		@user_Fecha_Nacimiento DateTime,
+		@user_curp varchar(250),
+		@user_Telefono numeric(10,0)
+	
+			
+	BEGIN TRY
+	BEGIN TRANSACTION Actualizar
+	
+		SELECT 	
+		@user_id = [user_id],
+		@user_email = [user_email],
+		@user_password = [user_password],
+		@user_P_Nombre = [user_P_Nombre],
+		@user_S_Nombre = [user_S_Nombre],
+		@user_Apellido_Paterno = [user_Apellido_Paterno],
+		@user_Apellido_Materno = [user_Apellido_Materno],
+		@user_Fecha_Nacimiento = [user_Fecha_Nacimiento],
+		@user_curp = [user_curp],
+		@user_Telefono = [user_Telefono]
+		FROM OPENJSON(@p_user_json)
+		WITH( 
+					[user_id] int '$.Id',
+					[user_email] varchar(50) '$.Email',
+					[user_password] varchar(max) '$.Pass',
+					[user_P_Nombre] varchar(50) '$.P_Nombre',
+					[user_S_Nombre] varchar(50) '$.S_Nombre',
+					[user_Apellido_Paterno] varchar(50) '$.Apellido_Paterno',
+					[user_Apellido_Materno] varchar(50) '$.Apellido_Materno',
+					[user_Fecha_Nacimiento] datetime '$.Fecha_Nacimiento',
+					[user_curp] varchar(50) '$.Curp',
+					[user_Telefono] numeric(10,0) '$.Telefono'
+					)
+
+	UPDATE [dbo].[Users]
+	   SET [Email] = @user_email
+		  ,[Pass] = @user_password
+		  ,[P_Nombre] = @user_P_Nombre
+		  ,[S_Nombre] = @user_S_Nombre
+		  ,[Apellido_Paterno] = @user_Apellido_Paterno
+		  ,[Apellido_Materno] = @user_Apellido_Materno
+		  ,[Fecha_Nacimiento] = @user_Fecha_Nacimiento
+		  ,[Curp] = @user_curp
+		  ,[Telefono] = @user_Telefono
+	 WHERE [Id] = @user_id
+
+	SELECT 1 AS [Result];  
+	
+	COMMIT TRANSACTION Actualizar
+	END TRY
+	BEGIN CATCH
+	ROLLBACK TRAN Actualizar
+	SET @MensajeError = N'Error ' + CONVERT(varchar(50), ERROR_NUMBER()) +
+						', Severity ' + CONVERT(varchar(5), ERROR_SEVERITY()) +
+						', State ' + CONVERT(varchar(5), ERROR_STATE()) +
+						', Line ' + CONVERT(varchar(5), ERROR_LINE()) +
+						', in procedure [USERS.Set] : ' + ERROR_MESSAGE();					
+	RAISERROR(@MensajeError,16,0);
+	RETURN
+	END CATCH;		
+END;
+
+USE [SuperLy]
+GO
+/****** Object:  StoredProcedure [dbo].[USERS.Register]    Script Date: 26/11/2021 11:21:07 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<RGAV>
+-- Create date: <03-08-2021>
+-- Description:	<Procedimiento para inserción en json>
+-- =============================================
+create PROCEDURE [dbo].[Sitios.AddSitio]
+	@p_user_json nvarchar(MAX)
+AS 
+BEGIN
+    SET NOCOUNT ON 
+
+	DECLARE @MensajeError NVARCHAR(MAX)
+	DECLARE 
+		@Id_sitio int,
+		@Nombre varchar(50),
+		@Descripcion varchar(max),
+		@Latitud numeric(9,6),
+		@Longitud numeric(9,6)
+	BEGIN TRY
+	BEGIN TRANSACTION Insertar
+	
+		SELECT 	
+		@Id_sitio = [sitio_id],
+		@Nombre = [sitio_nombre],
+		@Descripcion = [sitio_descripcion],
+		@Latitud = [sitio_latitud],
+		@Longitud = [sitio_longitud]
+		FROM OPENJSON(@p_user_json)
+		WITH( 
+					[sitio_id] int '$.Id_Sitio',
+					[sitio_nombre] varchar(50) '$.Nombre',
+					[sitio_descripcion] varchar(max) '$.Descripcion',
+					[sitio_latitud] numeric(9,6) '$.Latitud',
+					[sitio_longitud] numeric(9,6) '$.Longitud'
+					)
+
+		INSERT INTO Sitios
+		VALUES
+           (@Nombre,
+			@Descripcion,
+			@Latitud,
+			@Longitud)
+
+	SELECT SCOPE_IDENTITY() AS [SCOPE_IDENTITY];  
+
+
+	COMMIT TRANSACTION Insertar
+	END TRY
+	BEGIN CATCH
+	ROLLBACK TRAN Insertar
+	SET @MensajeError = N'Error ' + CONVERT(varchar(50), ERROR_NUMBER()) +
+						', Severity ' + CONVERT(varchar(5), ERROR_SEVERITY()) +
+						', State ' + CONVERT(varchar(5), ERROR_STATE()) +
+						', Line ' + CONVERT(varchar(5), ERROR_LINE()) +
+						', in procedure [USERS.Set] : ' + ERROR_MESSAGE();					
+	RAISERROR(@MensajeError,16,0);
+	RETURN
+	END CATCH;		
+END;
+
+USE [SuperLy]
+GO
+/****** Object:  StoredProcedure [dbo].[USERS.Register]    Script Date: 26/11/2021 11:21:07 p. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<RGAV>
+-- Create date: <03-08-2021>
+-- Description:	<Procedimiento para inserción en json>
+-- =============================================
+Create PROCEDURE [dbo].[Contactos.Add]
+	@p_user_json nvarchar(MAX)
+AS 
+BEGIN
+    SET NOCOUNT ON 
+
+	DECLARE @MensajeError NVARCHAR(MAX)
+	DECLARE 
+		@contacto_id_contacto int,
+		@contacto_alias varchar(50),
+		@contacto_telefono decimal(10,0),
+		@contacto_email varchar(50),
+		@contacto_id int
+	
+	BEGIN TRY
+	BEGIN TRANSACTION Insertar
+	
+		SELECT 	
+		@contacto_id_contacto = [contacto_id_contacto],
+		@contacto_alias = [contacto_alias],
+		@contacto_telefono  = [contacto_telefono],
+		@contacto_email  = [contacto_email],
+		@contacto_id  = [contacto_id]
+		FROM OPENJSON(@p_user_json)
+		WITH( 
+					[contacto_id_contacto] int '$.Id_Contacto',
+					[contacto_alias] varchar(50) '$.Alias',
+					[contacto_telefono] decimal(10,0) '$.Telefono',
+					[contacto_email] varchar(50) '$.Email',
+					[contacto_id] int '$.Id'
+					)
+
+		INSERT INTO Contactos
+		VALUES
+           (@contacto_alias,
+			@contacto_telefono,
+			@contacto_email,
+			@contacto_id)
+
+	SELECT SCOPE_IDENTITY() AS [SCOPE_IDENTITY];  
+
+
+	COMMIT TRANSACTION Insertar
+	END TRY
+	BEGIN CATCH
+	ROLLBACK TRAN Insertar
+	SET @MensajeError = N'Error ' + CONVERT(varchar(50), ERROR_NUMBER()) +
+						', Severity ' + CONVERT(varchar(5), ERROR_SEVERITY()) +
+						', State ' + CONVERT(varchar(5), ERROR_STATE()) +
+						', Line ' + CONVERT(varchar(5), ERROR_LINE()) +
+						', in procedure [USERS.Set] : ' + ERROR_MESSAGE();					
+	RAISERROR(@MensajeError,16,0);
+	RETURN
+	END CATCH;		
+END
+
+
+
+
+
+
+
 
 
 
