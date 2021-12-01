@@ -8,9 +8,9 @@ namespace StayInSafe.Core.Models
 {
     public class Comentarios
     {
-        public int Id_Comentario { get; set; }
+        public long Id_Comentario { get; set; }
         public string Comentario { get; set; }
-        public int Calificacion { get; set; }
+        public decimal Calificacion { get; set; }
         public int Id_Sitio { get; set; }
     }
 }

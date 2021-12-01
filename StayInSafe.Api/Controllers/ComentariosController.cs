@@ -6,7 +6,7 @@ using StayInSafe.Core.Services;
 
 namespace StayInSafe.Api.Controllers
 {
-    [Route("api/[controller]")]
+    //[Route("api/[controller]")]
     [ApiController]
     public class ComentariosController : ControllerBase
     {
