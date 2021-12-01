@@ -78,5 +78,16 @@ namespace StayInSafe.Core.Services
                 _ => throw new NullReferenceException(),
             };
         }
+
+        public static IComentario Comentarios(EServer typeServer)
+        {
+            return typeServer switch
+            {
+                EServer.UDEFINED => throw new NullReferenceException(),
+                EServer.LOCAL => new ComentarioService(BridgeDbConnection<Comentarios>.Create(ConnectionStrings.LocalServer, DbEnum.Sql)),
+                EServer.CLOUD => new ComentarioService(BridgeDbConnection<Comentarios>.Create(ConnectionStrings.CloudServer, DbEnum.Sql)),
+                _ => throw new NullReferenceException(),
+            };
+        }
     }
 }

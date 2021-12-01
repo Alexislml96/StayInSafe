@@ -21,7 +21,7 @@ namespace StayInSafe.Api.Controllers
                 ConnectionStringAzure = _configuration.GetConnectionString("CloudServer");
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("api/[controller]/AddContact")]
         public ActionResult AddContact(Contactos contacto)
         {
@@ -36,7 +36,7 @@ namespace StayInSafe.Api.Controllers
             return id > 0 ? Ok() : BadRequest("Error al insertar");
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpDelete("api/[controller]/DeleteContact/{id}")]
         public ActionResult DeleteContact(int id)
         {
@@ -51,7 +51,7 @@ namespace StayInSafe.Api.Controllers
             return Ok();
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("api/[controller]/GetContacts/{id}")]
         public IEnumerable<Contactos> GetContacts(int id) 
         {

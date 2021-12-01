@@ -21,7 +21,7 @@ namespace StayInSafe.Api.Controllers
                 ConnectionStringAzure = _configuration.GetConnectionString("CloudServer");
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public ActionResult AddSitio(Sitios sitio)
         {
