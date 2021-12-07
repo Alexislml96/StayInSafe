@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using StayInSafe.Core.Configuration;
@@ -55,11 +56,15 @@ else
 builder.Services.AddTransient((ServiceProvider) => BridgeDbConnection<Users>.Create(builder.Configuration.GetConnectionString("LocalServer"), Alexis.CORE.Connection.Models.DbEnum.Sql));
 
 builder.Services.AddScoped<IUser, UserService>();
+builder.Services.AddScoped(_ =>
+{
+    return new BlobServiceClient("DefaultEndpointsProtocol=https;AccountName=stayinimages;AccountKey=uKCZIwh2HQWsFqpxE7Ek35I5hDQOlViLHz6BTgjzh2qa3H8EMXlSqt09lyF/Z7ztwk+ZfZUKxqssbqCGAmN9gA==;EndpointSuffix=core.windows.net");
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

@@ -10,5 +10,6 @@ namespace StayInSafe.Core.Interfaces
     public interface ISitios : IDisposable
     {
         long AddSitio(Sitios sitio);
+        List<Sitios> GetSitios();
     }
 }

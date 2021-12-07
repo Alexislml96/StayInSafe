@@ -12,5 +12,7 @@ namespace StayInSafe.Core.Models
         public string Comentario { get; set; }
         public decimal Calificacion { get; set; }
         public int Id_Sitio { get; set; }
+        public int Id { get; set; }
+        public DateTime Fecha { get; set; }
     }
 }

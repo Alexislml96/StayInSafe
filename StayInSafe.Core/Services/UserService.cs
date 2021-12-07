@@ -32,6 +32,7 @@ namespace StayInSafe.Core.Services
         {
             long id = 0;
             user.Pass = _hashTool.Hash(user.Pass);
+            byte[] imagen = System.IO.File.ReadAllBytes(user.Imagen);
             try
             {
                 _parameters.Add("@p_user_json", JsonConvert.SerializeObject(user), DbType.String, ParameterDirection.Input);

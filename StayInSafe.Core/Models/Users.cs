@@ -19,5 +19,6 @@ namespace StayInSafe.Core.Models
 		public DateTime? Fecha_Nacimiento { get; set; }
 		public string? Curp { get; set; }
 		public decimal Telefono { get; set; }
+		public string Imagen { get;set; }
 	}
 }

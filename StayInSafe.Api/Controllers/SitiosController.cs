@@ -35,5 +35,17 @@ namespace StayInSafe.Api.Controllers
             }
             return id > 0 ? Ok() : BadRequest("Error al insertar");
         }
+
+        [HttpGet]
+        public IEnumerable<Sitios> GetSitios()
+        {
+            List<Sitios> model = new List<Sitios>();
+            using (ISitios Sitios = FactorizeService.Sitios(ConnectionStringAzure == string.Empty ? EServer.LOCAL : EServer.CLOUD))
+            {
+                model = Sitios.GetSitios();
+            }
+
+            return model;
+        }
     }
 }
