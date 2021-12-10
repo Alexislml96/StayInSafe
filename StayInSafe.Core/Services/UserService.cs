@@ -32,7 +32,6 @@ namespace StayInSafe.Core.Services
         {
             long id = 0;
             user.Pass = _hashTool.Hash(user.Pass);
-            byte[] imagen = System.IO.File.ReadAllBytes(user.Imagen);
             try
             {
                 _parameters.Add("@p_user_json", JsonConvert.SerializeObject(user), DbType.String, ParameterDirection.Input);
@@ -91,7 +90,7 @@ namespace StayInSafe.Core.Services
             try
             {
                 bool reply = false;
-                user.Pass = _hashTool.Hash(user.Pass);
+                //user.Pass = _hashTool.Hash(user.Pass);
                 _parameters.Add("@p_user_json", JsonConvert.SerializeObject(user), DbType.String, ParameterDirection.Input);
                 _conn.PrepararProcedimiento("dbo.[USERS.Update]", _parameters);
                 var affectedRows = (long)_conn.QueryFirstOrDefaultDapper(TipoDato.Numerico);

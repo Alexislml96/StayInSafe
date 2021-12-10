@@ -11,8 +11,8 @@ namespace StayInSafe.Core.Models
         public int? Id_Sitio { get; set; }
         public string? Nombre { get; set; }
         public string? Descripcion { get; set; }
-        public decimal? Latitud { get; set; }
-        public decimal? Longitud { get; set; }
+        public string? Latitud { get; set; }
+        public string? Longitud { get; set; }
         //public double CalificacionTotal => Comentarios.Where(x => x.Id_Sitio == Id_Sitio).Average(r => r.Calificacion);
     }
 }

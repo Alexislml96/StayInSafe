@@ -28,7 +28,7 @@ namespace StayInSafe.Core.Services
             {
                 LoginModel model = new LoginModel();
                 _parameters.Add("@Email", login.Email, DbType.String, ParameterDirection.Input);
-                _conn.PrepararProcedimiento("dbo.[Users.CheckUser]", _parameters);
+                _conn.PrepararProcedimiento("[dbo].[Users.CheckUser]", _parameters);
                 model = _conn.QueryFirstOrDefaultDapper();
                 return model;
             }

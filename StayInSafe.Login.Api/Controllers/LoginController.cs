@@ -13,6 +13,7 @@ namespace StayInSafe.Login.Api.Controllers
     public class LoginController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly LogsTool _logs;
         private readonly HashTool _hashTool;
         private readonly RefreshTokenGenerator _tokenGenerator;
         string ConnectionStringAzure = string.Empty;
@@ -26,6 +27,7 @@ namespace StayInSafe.Login.Api.Controllers
         {
             _configuration = configuration;
             _hashTool = new HashTool();
+            _logs = new LogsTool();
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
             {
                 ConnectionStringAzure = _configuration.GetConnectionString("CloudServer");
@@ -50,7 +52,7 @@ namespace StayInSafe.Login.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("Login")]
-        public ActionResult<RequestModel> Login([FromBody] LoginModel model)
+        public async Task<ActionResult<RequestModel>> Login([FromBody] LoginModel model)
         {
             long idRefresh = 0;
             if (string.IsNullOrEmpty(model.Email))
@@ -68,7 +70,7 @@ namespace StayInSafe.Login.Api.Controllers
                 {
                     u = Login.Login(validation.Item2);
                 }
-                request.JWT = TokenGenerator.GenerateTokenJwt(u.Email, u.Id,_secretKey,_audienceToken, _issuerToken, _expireTime);
+                request.JWT = TokenGenerator.GenerateTokenJwt(u.Email, u.Id, _secretKey, _audienceToken, _issuerToken, _expireTime);
                 var refresh = _tokenGenerator.GenerateRefreshToken();
                 request.RefreshToken = refresh.Item1;
                 request.RefreshTokenExpiryTime = refresh.Item2;
@@ -83,7 +85,15 @@ namespace StayInSafe.Login.Api.Controllers
                 }
                 if (!(idRefresh > 0))
                     return BadRequest();
-                
+
+                Logs log = new Logs();
+                var rnd = new Random();
+                log.idLog = rnd.Next(1, 100000);
+                log.accion = "Login";
+                log.nombreMetodo = "Login";
+                log.usuario = model.Email;
+                await _logs.InsertLog(log);
+
                 return Ok(request);
             }
 
@@ -91,7 +101,7 @@ namespace StayInSafe.Login.Api.Controllers
         }
         [AllowAnonymous]
         [HttpPost("refresh")]
-        public ActionResult<RequestModel> Refresh([FromBody] RefreshModel model)
+        public async Task <ActionResult<RequestModel>> Refresh([FromBody] RefreshModel model)
         {
             long idRefresh = 0;
             RefreshToken tokenModel = new RefreshToken();
@@ -126,7 +136,7 @@ namespace StayInSafe.Login.Api.Controllers
                 return NotFound();
 
             tokens.JWT = TokenGenerator.GenerateTokenJwt(userModel.Email, userModel.Id, _secretKey, _audienceToken, _issuerToken, _expireTime);
-            var refresh =  _tokenGenerator.GenerateRefreshToken();
+            var refresh = _tokenGenerator.GenerateRefreshToken();
             tokens.RefreshToken = refresh.Item1;
             tokens.RefreshTokenExpiryTime = refresh.Item2;
             RefreshToken refreshToken = new RefreshToken
@@ -141,10 +151,19 @@ namespace StayInSafe.Login.Api.Controllers
             if (!(idRefresh > 0))
                 return BadRequest();
 
+            Logs log = new Logs();
+            var rnd = new Random();
+            log.idLog = rnd.Next(1, 100000);
+            log.accion = "Get Refresh Token";
+            log.nombreMetodo = "Refresh";
+            log.usuario = userModel.Email;
+            await _logs.InsertLog(log);
+
             return Ok(tokens);
 
         }
 
+        [NonAction]
         private Tuple<bool, LoginModel> UsuarioValido(LoginModel model)
         {
             LoginModel user = new LoginModel();

@@ -64,8 +64,8 @@ namespace StayInSafe.Core.Services
                             Id_Sitio = Convert.ToInt32(jsonOperaciones["Id_Sitio"].ToString()),
                             Nombre = jsonOperaciones["Nombre"].ToString(),
                             Descripcion = jsonOperaciones["Descripcion"].ToString(),
-                            Latitud = Decimal.Parse(jsonOperaciones["Latitud"].ToString()),
-                            Longitud = Decimal.Parse(jsonOperaciones["Longitud"].ToString()),
+                            Latitud = jsonOperaciones["Latitud"].ToString(),
+                            Longitud = jsonOperaciones["Longitud"].ToString(),
                         });
 
                     }
